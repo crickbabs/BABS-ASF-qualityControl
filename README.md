@@ -3,7 +3,7 @@
 ## Obtaining the Files You Need
 
 	$ git clone https://github.com/crickbabs/BABS-ASF-qualityControl
-	$ cd qualityControl_byBABS
+	$ cd BABS-ASF-qualityControl
 
 ## Compiling the groovy library
 
