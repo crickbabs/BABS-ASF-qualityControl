@@ -1,0 +1,16 @@
+/*
+ * nourdine.bah@crick.ac.uk
+ */
+
+package qcpipeline
+
+import groovy.transform.Canonical
+import groovy.transform.Sortable
+
+@Canonical
+@Sortable
+class Run {
+
+	String number
+
+}

@@ -1,0 +1,1 @@
+/camp/stp/babs/working/bahn/code/nf/qc_pipeline/beta/examples/fastq/paired_end/180928_K00102_0259_BH2GKYBBXY/fastq/PM18024/LAI78A13_S10_L002_R2_001.fastq.gz

@@ -1,0 +1,11 @@
+#species: Homo sapiens
+#type: RNA- Seq
+#directories:
+#   - /camp/stp/babs/working/bahn/code/nf/qc_pipeline/beta/examples/fastq/paired_end/180928_K00102_0259_BH2GKYBBXY/fastq/PM18024
+#   - /camp/stp/babs/working/bahn/code/nf/qc_pipeline/beta/examples/fastq/paired_end/181018_K00102_0266_BH2KWKBBXY/fastq/PM18024
+
+species: Mus musculus
+type: Whatever- Seq
+directories:
+   - /camp/stp/babs/inputs/sequencing/fastq/170518_K00102_0132_AHHWHGBBXX/fastq/deCarne_310117
+

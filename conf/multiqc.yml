@@ -1,0 +1,88 @@
+
+title: "BABS quality control"
+subtitle: "Automated QC checking before analysis."
+intro_text: "First version of our QC pipeline."
+report_comment: "We need to discuss about basically everything."
+
+custom_logo: "/camp/stp/babs/working/bahn/code/nf/qc_pipeline/conf/logo.jpg"
+custom_logo_url: "https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics"
+custom_logo_title: "The Francis Crick Institute"
+
+log_filesize_limit: 30000000
+
+fn_clean_exts:
+   - .rg
+   - .dupmarked
+   - .stats
+   - cutadapt.fastq.gz
+   - _1
+   - _2
+   - _R1_001
+   - _R2_001
+   - _R1_001.fastq.gz
+   - _R2_001.fastq.gz
+   - _1_cutadapt.fastq.gz
+   - _2_cutadapt.fastq.gz
+   - .cnt
+
+sp:
+   tss:
+      fn: "*_tss.json"
+   qc_genes:
+      fn: "*_qc_genes.json"
+   chrom:
+      fn: "*_chrom.json"
+   transcripts:
+      fn: "*_transcripts.json"
+
+module_order:
+   - fastqc:
+      module_tag:
+         - RNA
+         - DNA
+   - cutadapt:
+      module_tag:
+         - RNA
+         - DNA
+   - rsem:
+      module_tag:
+         - RNA
+   - star:
+      module_tag:
+         - RNA
+   - samtools:
+      module_tag:
+         - DNA
+         - RNA
+   - picard:
+      module_tag:
+         - DNA
+         - RNA
+   - rseqc:
+      module_tag:
+         - RNA
+   - rna_seqc:
+      module_tag:
+         - RNA
+   - fastq_screen:
+      module_tag:
+         - RNA
+         - DNA
+   - chrom:
+      module_tag:
+         - RNA
+         - DNA
+   - qc_genes:
+      module_tag:
+         - RNA
+         - DNA
+   - transcripts:
+      module_tag:
+         - RNA
+         - DNA
+   - tss:
+      module_tag:
+         - RNA
+         - DNA
+
+

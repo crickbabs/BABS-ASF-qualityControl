@@ -1,0 +1,71 @@
+
+from os import listdir, pardir, curdir
+from os.path import join, split, abspath
+
+###############################################################################
+def build_targets(paths, is_single_end):
+
+	# targets info
+	fastq_info = []
+
+	# single or paired
+	read_type = "single_end" if is_single_end else "paired_end"
+		
+	# build targets info
+	for path in paths:
+		fastq_files = [ join(path, f) for f in listdir(path) ]
+		for p in fastq_files:
+			d = {}
+			d["filename"] = p.split("/")[-1]
+			d["read_type"] = read_type
+			d["project"] = p.split("/")[-2]
+			d["run_dir"] = p.split("/")[-4]
+			d["path"] = p
+			fastq_info.append(d)
+	
+	return fastq_info
+	############################################################################
+
+# fastq locations
+root_dir = "/camp/stp/sequencing/inputs/instruments/fastq"
+se_path1 = join(root_dir, "181127_K00102_0279_AH2WFLBBXY/fastq/RN18209")
+pe_path1 = join(root_dir, "180928_K00102_0259_BH2GKYBBXY/fastq/PM18024")
+pe_path2 = join(root_dir, "181018_K00102_0266_BH2KWKBBXY/fastq/PM18024")
+se_paths = [ se_path1 ]
+pe_paths = [ pe_path1 , pe_path2 ]
+
+# targets infor
+se_targets = build_targets(se_paths, True)
+pe_targets = build_targets(pe_paths, False)
+targets = [ *se_targets , *pe_targets ]
+
+filenames = [ d["filename"] for d in targets ]
+read_types = [ d["read_type"] for d in targets ]
+projects = [ d["project"] for d in targets ]
+run_dirs = [ d["run_dir"] for d in targets ]
+filename_to_path = dict([ (d["filename"],d["path"]) for d in targets ])
+
+###############################################################################
+
+####
+rule all:
+	input:
+		expand("fastq/{read_type}/{run_dir}/fastq/{project}/{filename}",
+			zip,
+			filename=filenames,
+			project=projects,
+			run_dir=run_dirs,
+			read_type=read_types)
+
+####
+rule seqtk:
+	input:
+		fastq=lambda w: filename_to_path[ w["filename"] ]
+	output:
+		"fastq/{read_type}/{run_dir}/fastq/{project}/{filename}"
+	shell:
+		"""
+		module load seqtk/1.2-foss-2016b
+		seqtk sample -s1903 {input.fastq} 5000 | gzip -c > {output}
+		"""
+

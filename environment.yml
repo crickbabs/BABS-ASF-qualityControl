@@ -1,0 +1,41 @@
+name: qcpipeline
+
+channels:
+   - anaconda
+   - conda-forge
+   - bioconda
+   - r
+   - kapabix
+
+dependencies:
+
+   # for the pipeline
+   - bioconda::cutadapt=1.18
+   - bioconda::fastq-screen=0.13.0
+   - bioconda::bowtie2 # for fastq screen
+   - bioconda::fastqc=0.11.8
+     #- bioconda::htseq=0.11.0
+   - bioconda::picard=2.18.21
+   - bioconda::rsem=1.3.1
+   - bioconda::rseqc=3.0.0
+   - bioconda::samtools=1.3 # this version because of rsem
+   - bioconda::seqtk=1.3
+   - bioconda::star=2.6.1b
+     #- conda-forge::pandas=0.24.1
+   - kapabix::rnaseqc=1.1.8
+   - conda-forge::libiconv=1.15 # required by an R calling with picard multime
+   - r::r=3.4.1 # this version because of a conflict with rsem
+     #- conda-forge::libgcc=7.2.0 # for custom cpp scripts
+     #- conda-forge::libstdcxx-ng=7.3.0 # for custom cpp scripts
+   - anaconda::libgcc-ng=8.2.0 # for custom cpp scripts
+   - anaconda::libstdcxx-ng=8.2.0 # for custom cpp scripts
+
+   # multiqc plugins
+   - anaconda::numpy=1.15.4 # for one multiqc module of the multiqc plugin
+   - bioconda::htseq=0.11.0 # for multiqc
+   - bioconda::multiqc=1.6
+   - conda-forge::openblas=0.3.3 # for multiqc, this version because of numpy
+   - conda-forge::pandas=0.24.1 # for multiqc
+   - pip:
+      - git+https://github.com/crickbabs/BABS-MultiQC-QualityControl
+

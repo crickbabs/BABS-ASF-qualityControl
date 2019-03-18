@@ -1,0 +1,167 @@
+# coding: utf-8
+
+# librairies
+from os.path import join
+
+# output locations
+CAMP_DIRPATH = "/camp/svc/reference"
+GENOME_DIRPATH = join(CAMP_DIRPATH, "Genomics/babs")
+WORK_DIRPATH = "/camp/stp/babs/working/bahn/code/project/qc_pipeline/beta"
+JSON_DIRPATH = join(WORK_DIRPATH, "json")
+TXT_DIRPATH = join(WORK_DIRPATH, "txt")
+BED_DIRPATH = join(WORK_DIRPATH, "bed")
+
+# annotation files
+HUMAN_GTF_FILEPATH = \
+	join(GENOME_DIRPATH,
+			"homo_sapiens/ensembl/GRCh38/release-86/gtf",
+			"Homo_sapiens.GRCh38.86.gtf")
+HUMAN_BED_FILEPATH = \
+	join(GENOME_DIRPATH,
+			"homo_sapiens/ensembl/GRCh38/release-86/gtf",
+			"Homo_sapiens.GRCh38.86.bed")
+####
+rule all:
+	input:
+		"%s/human_globin.bed" % BED_DIRPATH,
+		"%s/human_rrna.bed" % BED_DIRPATH,
+		"%s/human_mtrrna.bed" % BED_DIRPATH
+
+####
+rule downlad_hgnc:
+	output:
+		"%s/hgnc.json" % JSON_DIRPATH
+	params:
+		url="ftp://ftp.ebi.ac.uk/pub/databases/genenames/new/json/" +
+			"hgnc_complete_set.json"
+	shell:
+		"""
+		wget -O {output} {params.url}
+		"""
+
+####
+rule globin_transcript_ids:
+	input:
+		"%s/hgnc.json" % JSON_DIRPATH
+	output:
+		"%s/human_globin_ids.txt" % TXT_DIRPATH
+	run:
+
+		import json
+		import urllib3
+		from unicodedata import normalize
+		
+		# the hgnc families
+		with open(input[0], 'r', encoding="utf-8") as f:
+			s = f.read()
+			s = normalize('NFKD', s).encode('ascii','ignore').decode("utf-8")
+			hgnc = json.loads(s)
+			hgnc = hgnc["response"]["docs"]
+		
+		# here we go mario
+		gene_ids = []
+		for gene in hgnc:
+			if "gene_family" in gene:
+				if "Hemoglobin subunits" in gene["gene_family"]:
+					if "ensembl_gene_id" in gene:
+						gene_ids.append(gene["ensembl_gene_id"])
+
+		# get the trancript ids
+		base = "https://rest.ensembl.org/lookup/id"
+		header = "?content-type=application/json;expand=1"
+		transcript_ids = set()
+		for i in gene_ids:
+			http = urllib3.PoolManager()
+			url = base + "/" + i + header
+			r = http.request("GET", url)
+			j = json.loads(r.data)
+			for t in j["Transcript"]:
+				transcript_ids.add(t["id"])
+		transcript_ids = sorted(list( transcript_ids ))
+
+		# save
+		with open(output[0], 'w') as f:
+			f.write("\n".join(transcript_ids)+"\n")
+
+####
+rule human_rrna_transcript_ids:
+	output:
+		"%s/human_rrna_ids.txt" % TXT_DIRPATH
+	params:
+		gtf=HUMAN_GTF_FILEPATH
+	shell:
+		"""
+		cat {params.gtf} \
+			| grep 'gene_biotype "rRNA"' \
+			| grep transcript_id \
+			| sed 's/^.*transcript_id "\([A-Z0-9]*\).*$/\\1/' \
+			| sort \
+			| uniq \
+			> {output}
+		"""
+
+####
+rule human_mtrrna_transcript_ids:
+	output:
+		"%s/human_mtrrna_ids.txt" % TXT_DIRPATH
+	params:
+		gtf=HUMAN_GTF_FILEPATH
+	shell:
+		"""
+		cat {params.gtf} \
+			| grep 'gene_biotype "Mt_rRNA"' \
+			| grep transcript_id \
+			| sed 's/^.*transcript_id "\([A-Z0-9]*\).*$/\\1/' \
+			| sort \
+			| uniq \
+			> {output}
+		"""
+
+####
+rule human_globin_bed:
+	input:
+		"%s/human_globin_ids.txt" % TXT_DIRPATH
+	output:
+		"%s/human_globin.bed" % BED_DIRPATH
+	params:
+		bed=HUMAN_BED_FILEPATH
+	shell:
+		"""
+		ids=$(cat {input} | tr "\n" "|")
+		cat {params.bed} \
+			| grep -E ${{ids::-1}} \
+			> {output}
+		"""
+
+####
+rule human_rrna_bed:
+	input:
+		"%s/human_rrna_ids.txt" % TXT_DIRPATH
+	output:
+		"%s/human_rrna.bed" % BED_DIRPATH
+	params:
+		bed=HUMAN_BED_FILEPATH
+	shell:
+		"""
+		ids=$(cat {input} | tr "\n" "|")
+		cat {params.bed} \
+			| grep -E ${{ids::-1}} \
+			> {output}
+		"""
+
+####
+rule human_mtrrna_bed:
+	input:
+		"%s/human_mtrrna_ids.txt" % TXT_DIRPATH
+	output:
+		"%s/human_mtrrna.bed" % BED_DIRPATH
+	params:
+		bed=HUMAN_BED_FILEPATH
+	shell:
+		"""
+		ids=$(cat {input} | tr "\n" "|")
+		cat {params.bed} \
+			| grep -E ${{ids::-1}} \
+			> {output}
+		"""
+
