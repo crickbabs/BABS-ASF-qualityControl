@@ -40,8 +40,6 @@ You don't need to do anything. The pipeline is using a `qcpipeline` conda  envir
 
 ### If you are not from BABS
 
-You need to create an anaconda environment and install multiqc, other packages, and the multiqc plugins inside this environment. Here is the procedure.
-
 First, you need to load Anaconda:
 
 	$ module load Anaconda2/5.1.0
