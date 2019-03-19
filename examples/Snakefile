@@ -34,7 +34,7 @@ pe_path2 = join(root_dir, "181018_K00102_0266_BH2KWKBBXY/fastq/PM18024")
 se_paths = [ se_path1 ]
 pe_paths = [ pe_path1 , pe_path2 ]
 
-# targets infor
+# targets info
 se_targets = build_targets(se_paths, True)
 pe_targets = build_targets(pe_paths, False)
 targets = [ *se_targets , *pe_targets ]
