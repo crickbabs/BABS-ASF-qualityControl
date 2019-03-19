@@ -1,4 +1,9 @@
 
+/*
+ * nourdine.bah@crick.ac.uk
+ * jerome.nicod@crick.ac.uk
+ */
+
 // c header
 #include <stdlib.h>
 #include <limits.h>
