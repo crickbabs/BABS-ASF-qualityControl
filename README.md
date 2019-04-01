@@ -9,6 +9,7 @@
 
 This is just some custom groovy code that needs to be compiled:
 
+	$ module load groovy/2.5.4
 	$ make
 
 ## Installing the conda environment
@@ -54,7 +55,7 @@ After having a `qcpipeline` conda environment:
 	
 	$ module load Anaconda2/5.1.0
 	$ source activate qcpipeline
-	$ cd script/cpp
+	$ cd scripts/cpp
 	$ make
 	$ cd -
 	$ source deactivate
