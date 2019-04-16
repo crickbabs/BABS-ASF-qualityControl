@@ -59,7 +59,7 @@ class Fastq {
 	String sequencing_type
 	////////////////////////////////////////////////////////////////////////////
 
-	Fastq(File file) {
+	Fastq(File file, String type, String species) {
 
 		// the fastq file
 		this.file = file
@@ -102,6 +102,9 @@ class Fastq {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd")
 		this.date = sdf.parse( "20" + flow_cell_info[0] )
 		/////////////////////////////////////////////////////////////////////////
+
+		this.species = species
+		this.sequencing_type = type
 	}
 
 	////////////////////////////////////////////////////////////////////////////

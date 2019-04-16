@@ -1,8 +1,8 @@
 
-title: "BABS quality control"
+title: "ASF-BABS quality control"
 subtitle: "Automated QC checking before analysis."
-intro_text: "First version of our QC pipeline."
-report_comment: "We need to discuss about basically everything."
+intro_text: "Second version of the ASF QC pipeline."
+#report_comment: "We need to discuss about basically everything."
 
 custom_logo: "/camp/stp/babs/working/bahn/code/nf/qc_pipeline/conf/logo.jpg"
 custom_logo_url: "https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics"
@@ -10,17 +10,34 @@ custom_logo_title: "The Francis Crick Institute"
 
 log_filesize_limit: 30000000
 
+# redondant information
+table_columns_visible:
+   FastQC:
+      percent_duplicates: False
+      total_sequences: False
+   Picard:
+      PCT_PF_READS_ALIGNED: False
+
+collapse_table: false
+
 fn_clean_exts:
    - .rg
    - .dupmarked
    - .stats
+   - .fastq.gz
    - cutadapt.fastq.gz
+   - _R1
+   - _R2
    - _1
    - _2
    - _R1_001
    - _R2_001
    - _R1_001.fastq.gz
    - _R2_001.fastq.gz
+   - _1.fastq.gz
+   - _2.fastq.gz
+   - _R1.fastq.gz
+   - _R2.fastq.gz
    - _1_cutadapt.fastq.gz
    - _2_cutadapt.fastq.gz
    - .cnt

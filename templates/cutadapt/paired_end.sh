@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# to avoid multiple the multiqc general statistics table
+cp -v $fastq1 $new_fastq1
+cp -v $fastq2 $new_fastq2
+
 cutadapt \
 	-a AGATCGGAAGAGC \
 	-A AGATCGGAAGAGC \
@@ -9,5 +13,8 @@ cutadapt \
 	-q 10 \
 	-m 25 \
 	-O 1 \
-	$fastq1 $fastq2 > $logfile
+	$new_fastq1 $new_fastq2 > $logfile
+
+rm -v $new_fastq1
+rm -v $new_fastq2
 

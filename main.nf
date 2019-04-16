@@ -25,21 +25,44 @@ import qcpipeline.Fastq
 publish_mode = "symlink"
 publish_overwrite = true
 
-// all the fastq files of the project
-fastq_files = []
-params.directories.each{ path ->
-	def dir = new File(path)
-	dir.eachFileMatch(FileType.FILES, ~/.*\.fastq\.gz/) { f ->
-		Fastq fastq = new Fastq(f)
-		fastq.setSpecies(params.species)
-		fastq.setSequencing_type(params.type.toLowerCase().replaceAll(" |-", ""))
-		fastq_files.add(fastq)
-	}
-}
+//// all the fastq files of the project
+//fastq_files = []
+//params.directories.each{ path ->
+//	def dir = new File(path)
+//	dir.eachFileMatch(FileType.FILES, ~/.*\.fastq\.gz/) { f ->
+//		Fastq fastq = new Fastq(f)
+//		fastq.setSpecies(params.species)
+//		fastq.setSequencing_type(params.type.toLowerCase().replaceAll(" |-", ""))
+//		fastq_files.add(fastq)
+//	}
+//}
+//
+///*|||||||||||||||||||||*/
+//Channel.from(fastq_files)
+///*|||||||||||||||||||||*/
+//	//// test
+//	//.map{
+//	//	[ it.getFile().getBaseName().replaceAll("_R\\d_001.fastq", ""), it ]
+//	//}
+//	//.groupTuple()
+//	//.take(3)
+//	//.map{ it[1] }
+//	//.flatten()
+//	//// test
+//	.into{ fastqs; to_read_length }
 
-/*|||||||||||||||||||||*/
-Channel.from(fastq_files)
-/*|||||||||||||||||||||*/
+/*|||*/
+Channel
+/*|||*/
+	.fromPath(params.csv)
+	.splitCsv(header:true)
+	.map{
+		Fastq fastq = new Fastq(
+			new File(it["file"]),
+			it["type"].toLowerCase().replaceAll(" |-", ""),
+			it["species"]
+			)
+	}
 	//// test
 	//.map{
 	//	[ it.getFile().getBaseName().replaceAll("_R\\d_001.fastq", ""), it ]
@@ -50,6 +73,7 @@ Channel.from(fastq_files)
 	//.flatten()
 	//// test
 	.into{ fastqs; to_read_length }
+
 
 /*||||||||||*/
 to_read_length
@@ -87,9 +111,9 @@ qc_genes_dir = absolute_path("scripts/qc_genes_list/txt")
 // ------------------------------------------------------------------------- //
 ///////////////////////////////////////////////////////////////////////////////
 
-/*--------------------------- */
+/* ----------------------- */
 def get_file(species, name) {
-/*--------------------------- */
+/* ----------------------- */
 
 	version = genomes[ species.toLowerCase() ]["version"]
 	release = genomes[ species.toLowerCase() ]["release"]
@@ -99,9 +123,9 @@ def get_file(species, name) {
 	return genome[name]
 }
 
-/* ----------------------------------------------- */
+/* ------------------------------------------ */
 def get_star_index(species, rough_read_length) {
-/* ----------------------------------------------- */
+/* ------------------------------------------ */
 
 	version = genomes[ species.toLowerCase() ]["version"]
 	release = genomes[ species.toLowerCase() ]["release"]
@@ -304,8 +328,13 @@ process fastqc {
 			file("*.fastqc") into fastqc
 	
 	script:
+
 		basename = flowcell + "_" + name
 		outdir = basename + ".fastqc"
+
+		// to avoid multiple the multiqc general statistics table
+		new_fastq = basename + ".fastq.gz"
+
 		template "fastqc.sh"
 }
 
@@ -357,6 +386,9 @@ process cutadapt {
 			output = basename + ".cutadapt.fastq.gz"
 			logfile = basename + ".log"
 
+			// to avoid multiple the multiqc general statistics table
+			new_fastq = basename + ".fastq.gz"
+
 			template "cutadapt/single_end.sh"
 
 		} else {
@@ -366,6 +398,10 @@ process cutadapt {
 			output1 = basename + "_1.cutadapt.fastq.gz"
 			output2 = basename + "_2.cutadapt.fastq.gz"
 			logfile = basename + ".log"
+
+			// to avoid multiple the multiqc general statistics table
+			new_fastq1 = basename + "_1.fastq.gz"
+			new_fastq2 = basename + "_2.fastq.gz"
 
 			template "cutadapt/paired_end.sh"
 		}
@@ -422,7 +458,7 @@ process fastqc_cutadapt {
 		basename = "cutadapt_" + basename
 		outdir = basename + ".fastqc"
 
-		template "fastqc.sh"
+		template "fastqc_cutadapt.sh"
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1832,40 +1868,41 @@ process read_distribution {
 		template "rseqc/read_distribution.sh"
 }
 
-///////////////////////////////////
-process transcript_integrity_number {
-///////////////////////////////////
-
-	tag { basename }
-
-	input:
-		set \
-			val(flowcell),
-			val(name),
-			val(single_end),
-			val(type),
-			val(rough_read_length),
-			val(bed),
-			file(bam),
-			file(bai) from picard_bai_transcript_integrity
-
-	when:
-		type == "rnaseq"
-	
-	output:
-		set \
-			val(flowcell),
-			val(name),
-			val(single_end),
-			val(type),
-			file("*.{xls,txt}") into transcript_integrity
-
-	script:
-
-		basename = flowcell + "_" + name
-
-		template "rseqc/transcript_integrity_number.sh"
-}
+// very long and really necessary
+/////////////////////////////////////
+//process transcript_integrity_number {
+/////////////////////////////////////
+//
+//	tag { basename }
+//
+//	input:
+//		set \
+//			val(flowcell),
+//			val(name),
+//			val(single_end),
+//			val(type),
+//			val(rough_read_length),
+//			val(bed),
+//			file(bam),
+//			file(bai) from picard_bai_transcript_integrity
+//
+//	when:
+//		type == "rnaseq"
+//	
+//	output:
+//		set \
+//			val(flowcell),
+//			val(name),
+//			val(single_end),
+//			val(type),
+//			file("*.{xls,txt}") into transcript_integrity
+//
+//	script:
+//
+//		basename = flowcell + "_" + name
+//
+//		template "rseqc/transcript_integrity_number.sh"
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // ------------------------------------------------------------------------- //
@@ -2234,6 +2271,7 @@ process info {
 		"""
 }
 
+
 ///////////////
 process multiqc {
 ///////////////
@@ -2247,7 +2285,7 @@ process multiqc {
 		file("*") from cutadapt_multiqc.map{x->x[3]}.collect().ifEmpty([])
 
 		file("*") from fastqc.map{x->x[2]}.collect().ifEmpty([])
-		file("*") from fastqc_cutadapt.map{x->x[4]}.collect().ifEmpty([])
+		//file("*") from fastqc_cutadapt.map{x->x[4]}.collect().ifEmpty([])
 
 		file("*") from fscreen_html.map{x->x[3]}.collect().ifEmpty([])
 		file("*") from fscreen_txt.map{x->x[3]}.collect().ifEmpty([])
@@ -2273,7 +2311,7 @@ process multiqc {
 		file("*") from junction_saturation.map{x->x[4]}.collect().ifEmpty([])
 		file("*") from mismatch_profile.map{x->x[4]}.collect().ifEmpty([])
 		file("*") from read_distribution.map{x->x[4]}.collect().ifEmpty([])
-		file("*") from transcript_integrity.map{x->x[4]}.collect().ifEmpty([])
+		//file("*") from transcript_integrity.map{x->x[4]}.collect().ifEmpty([])
 
 		file("*") from rnaseqc.map{x->x[4]}.collect().ifEmpty([])
 
